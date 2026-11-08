@@ -1,0 +1,1 @@
+-O3 -mtune=raptorlake -falign-functions=32 -falign-loops=16
