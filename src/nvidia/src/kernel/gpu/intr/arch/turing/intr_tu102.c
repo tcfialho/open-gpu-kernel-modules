@@ -830,7 +830,7 @@ intrGetLocklessVectorsInRmSubtree_TU102
  * @param[out]  pLeafVals  array that leaf values will be returned in.
  *                         assumes that it is sufficiently large
  */
-static NV_STATUS
+static NV_STATUS __attribute__((unused))
 _intrGetLeafStatus_TU102
 (
     OBJGPU             *pGpu,
@@ -932,12 +932,14 @@ intrGetPendingStallEngines_TU102
         return NV_OK;
     }
 
-    NV_ASSERT_OK_OR_RETURN(_intrGetLeafStatus_TU102(pGpu,
-                                                    pIntr,
-                                                    bUseCachedRegVal,
-                                                    cachedStaticRegVal,
-                                                    intrLeafValues,
-                                                    pThreadState));
+    // Leaf registers are read lazily below, only for leaves that actually hold a stall vector of a table engine
+    NvU32 leafReadMask = 0;
+    NvBool bEvenLeavesOnly = pIntr->getProperty(pIntr, PDB_PROP_INTR_READ_ONLY_EVEN_NUMBERED_INTR_LEAF_REGS);
+    if (bUseCachedRegVal)
+    {
+        intrLeafValues[4] = cachedStaticRegVal;
+        leafReadMask |= NVBIT(4);
+    }
     NV_ASSERT_OK_OR_RETURN(intrGetInterruptTable_HAL(pGpu, pIntr, &pIntrTable));
 
     for (iter = vectIterAll(pIntrTable); vectIterNext(&iter);)
@@ -982,6 +984,13 @@ intrGetPendingStallEngines_TU102
         // for engines that haven't yet switched would be INVALID, so we'd never
         // get here anyway.
         //
+        if (!(leafReadMask & NVBIT(leafIndex)))
+        {
+            leafReadMask |= NVBIT(leafIndex);
+            if (!(bEvenLeavesOnly && (leafIndex & 1)))
+                intrLeafValues[leafIndex] = intrReadRegLeaf_HAL(pGpu, pIntr, leafIndex, pThreadState);
+        }
+
         leaf = intrLeafValues[leafIndex] & NVBIT(leafBit);
 
         if (leaf == 0)
