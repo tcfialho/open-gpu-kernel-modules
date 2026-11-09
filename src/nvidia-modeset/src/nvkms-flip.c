@@ -299,7 +299,21 @@ static void InitNvKmsFlipWorkArea(const NVDevEvoRec *pDevEvo,
     const NVDispEvoRec *pDispEvo;
     NvU32 sd, head, apiHead;
 
-    nvkms_memset(pWorkArea, 0, sizeof(*pWorkArea));
+    /*
+     * Zero only the slots of displays that exist; newState/oldState are
+     * cleared below by nvInitFlipEvoHwState(). Callers index pWorkArea->sd[]
+     * and ->disp[] only by valid display index.
+     */
+    nvkms_memset(&pWorkArea->updateState, 0, sizeof(pWorkArea->updateState));
+
+    FOR_ALL_EVO_DISPLAYS(pDispEvo, sd, pDevEvo) {
+        pWorkArea->sd[sd].changed = FALSE;
+        for (head = 0; head < ARRAY_LEN(pWorkArea->sd[sd].head); head++) {
+            nvkms_memset(&pWorkArea->sd[sd].head[head].preFlipUsage, 0,
+                         sizeof(pWorkArea->sd[sd].head[head].preFlipUsage));
+        }
+        nvkms_memset(&pWorkArea->disp[sd], 0, sizeof(pWorkArea->disp[sd]));
+    }
 
     /*
      * Initialize the work area. Note we take two snapshots of the
