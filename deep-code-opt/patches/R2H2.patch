@@ -1,0 +1,29 @@
+diff --git a/src/nvidia/src/kernel/gpu/intr/arch/turing/intr_nonstall_tu102.c b/src/nvidia/src/kernel/gpu/intr/arch/turing/intr_nonstall_tu102.c
+index 6cc1e2c..f9607bc 100644
+--- a/src/nvidia/src/kernel/gpu/intr/arch/turing/intr_nonstall_tu102.c
++++ b/src/nvidia/src/kernel/gpu/intr/arch/turing/intr_nonstall_tu102.c
+@@ -245,8 +245,10 @@ intrGetPendingNonStall_TU102
+         for (j = NV_CTRL_INTR_SUBTREE_TO_LEAF_IDX_START(i); j <= NV_CTRL_INTR_SUBTREE_TO_LEAF_IDX_END(i); j++)
+         {
+             InterruptTableIter iter;
+-            NvU32 intr = intrReadRegLeaf_HAL(pGpu, pIntr, j, pThreadState) &
+-                         intrReadRegLeafEnSet_HAL(pGpu, pIntr, j, pThreadState);
++            // LEAF==0 makes the AND zero regardless of EN_SET: skip the second MMIO read
++            NvU32 intr = intrReadRegLeaf_HAL(pGpu, pIntr, j, pThreadState);
++            if (intr != 0)
++                intr &= intrReadRegLeafEnSet_HAL(pGpu, pIntr, j, pThreadState);
+             if (intr == 0)
+             {
+                 continue;
+@@ -443,8 +445,9 @@ intrServiceNonStall_TU102
+ 
+         for (j = NV_CTRL_INTR_SUBTREE_TO_LEAF_IDX_START(i); j <= NV_CTRL_INTR_SUBTREE_TO_LEAF_IDX_END(i); j++)
+         {
+-            intr = intrReadRegLeaf_HAL(pGpu, pIntr, j, pThreadState) &
+-                   intrReadRegLeafEnSet_HAL(pGpu, pIntr, j, pThreadState);
++            intr = intrReadRegLeaf_HAL(pGpu, pIntr, j, pThreadState);
++            if (intr != 0)
++                intr &= intrReadRegLeafEnSet_HAL(pGpu, pIntr, j, pThreadState);
+             if (intr == 0)
+             {
+                 continue;

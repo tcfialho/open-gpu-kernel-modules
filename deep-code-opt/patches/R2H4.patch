@@ -1,0 +1,15 @@
+diff --git a/src/nvidia/src/kernel/gpu/gsp/kernel_gsp.c b/src/nvidia/src/kernel/gpu/gsp/kernel_gsp.c
+index 46d5b50..271658b 100644
+--- a/src/nvidia/src/kernel/gpu/gsp/kernel_gsp.c
++++ b/src/nvidia/src/kernel/gpu/gsp/kernel_gsp.c
+@@ -2067,8 +2067,9 @@ _kgspRpcDrainEvents
+                                          pConditionFunc, pConditionData);
+         if (nvStatus == NV_OK)
+             nEventsHandled++;
+-        kgspDumpGspLogs(pKernelGsp, NV_FALSE);
+     }
++    // one log dump per drain call instead of one per event
++    kgspDumpGspLogs(pKernelGsp, NV_FALSE);
+ 
+     //
+     // The health check costs MMIO reads over PCIe (CrashCat queue pointers).

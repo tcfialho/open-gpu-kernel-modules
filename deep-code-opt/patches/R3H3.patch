@@ -1,0 +1,16 @@
+diff --git a/kernel-open/nvidia-uvm/uvm_gpu_semaphore.c b/kernel-open/nvidia-uvm/uvm_gpu_semaphore.c
+index 478c1aa..57a6c1e 100644
+--- a/kernel-open/nvidia-uvm/uvm_gpu_semaphore.c
++++ b/kernel-open/nvidia-uvm/uvm_gpu_semaphore.c
+@@ -862,5 +862,11 @@ bool uvm_gpu_tracking_semaphore_is_value_completed(uvm_gpu_tracking_semaphore_t
+         return true;
+     }
+ 
++    // No progress since the last update (payload == low 32 bits of completed_value): the locked update would just
++    // return the old, smaller value, so skip taking the lock/mutex on every poll iteration.
++    if (!gpu_semaphore_is_secure(&tracking_sem->semaphore) &&
++        (NvU32)completed == uvm_gpu_semaphore_get_payload(&tracking_sem->semaphore))
++        return false;
++
+     return uvm_gpu_tracking_semaphore_update_completed_value(tracking_sem) >= value;
+ }

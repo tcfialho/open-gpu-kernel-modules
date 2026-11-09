@@ -1,0 +1,35 @@
+diff --git a/kernel-open/nvidia/nv.c b/kernel-open/nvidia/nv.c
+index a7efd3e..27c40db 100644
+--- a/kernel-open/nvidia/nv.c
++++ b/kernel-open/nvidia/nv.c
+@@ -2645,6 +2645,7 @@ nvidia_ioctl(
+     void *arg_copy = NULL;
+     size_t arg_size = 0;
+     int arg_cmd;
++    char arg_stack_buf[256] __aligned(16);
+ 
+     if (nv_validate_ioctls(cmd) != NV_OK)
+     {
+@@ -2692,7 +2693,11 @@ nvidia_ioctl(
+         }
+     }
+ 
+-    NV_KMALLOC(arg_copy, arg_size);
++    // Most RM ioctl argument blocks are small: copy them through the stack instead of a kmalloc/kfree pair
++    if (arg_size <= sizeof(arg_stack_buf))
++        arg_copy = arg_stack_buf;
++    else
++        NV_KMALLOC(arg_copy, arg_size);
+     if (arg_copy == NULL)
+     {
+         nv_printf(NV_DBG_ERRORS, "NVRM: failed to allocate ioctl memory\n");
+@@ -3005,7 +3010,8 @@ done_early:
+                 status = -EFAULT;
+             }
+         }
+-        NV_KFREE(arg_copy, arg_size);
++        if (arg_copy != arg_stack_buf)
++            NV_KFREE(arg_copy, arg_size);
+     }
+ 
+     return status;

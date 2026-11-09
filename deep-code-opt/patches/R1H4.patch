@@ -1,0 +1,41 @@
+diff --git a/kernel-open/nvidia-uvm/uvm_common.c b/kernel-open/nvidia-uvm/uvm_common.c
+index 5f84200..5f3a282 100644
+--- a/kernel-open/nvidia-uvm/uvm_common.c
++++ b/kernel-open/nvidia-uvm/uvm_common.c
+@@ -248,7 +248,15 @@ void on_uvm_assert(void)
+ 
+ NV_STATUS uvm_spin_loop(uvm_spin_loop_t *spin)
+ {
+-    NvU64 curr = NV_GETTIME();
++    NvU64 curr;
++
++    // The clock read (ktime_get_raw_ts64) dominates a spin iteration; the schedule/print thresholds are ms..s, so sample every 16th call.
++    if ((spin->iter++ & 0xF) != 0) {
++        cpu_relax();
++        return NV_OK;
++    }
++
++    curr = NV_GETTIME();
+ 
+     // This schedule() is required for functionality, not just system
+     // performance. It allows RM to run and unblock the UVM driver:
+diff --git a/kernel-open/nvidia-uvm/uvm_common.h b/kernel-open/nvidia-uvm/uvm_common.h
+index 16221a6..818e739 100644
+--- a/kernel-open/nvidia-uvm/uvm_common.h
++++ b/kernel-open/nvidia-uvm/uvm_common.h
+@@ -265,6 +265,7 @@ typedef struct
+ {
+     NvU64 start_time_ns;
+     NvU64 print_time_ns;
++    NvU32 iter;
+ } uvm_spin_loop_t;
+ 
+ static inline void uvm_spin_loop_init(uvm_spin_loop_t *spin)
+@@ -272,6 +273,7 @@ static inline void uvm_spin_loop_init(uvm_spin_loop_t *spin)
+     NvU64 curr = NV_GETTIME();
+     spin->start_time_ns = curr;
+     spin->print_time_ns = curr;
++    spin->iter = 0;
+ }
+ 
+ // Periodically yields the CPU when not called from interrupt context. Returns

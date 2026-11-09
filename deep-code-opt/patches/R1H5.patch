@@ -1,0 +1,24 @@
+diff --git a/src/nvidia/src/kernel/gpu/gsp/kernel_gsp.c b/src/nvidia/src/kernel/gpu/gsp/kernel_gsp.c
+index 46d5b50..51c21f9 100644
+--- a/src/nvidia/src/kernel/gpu/gsp/kernel_gsp.c
++++ b/src/nvidia/src/kernel/gpu/gsp/kernel_gsp.c
+@@ -3302,6 +3302,7 @@ kgspRecvPoll_IMPL
+     NvU32      timeoutFlags;
+     NvBool     bSlowGspRpc = !IS_SILICON(pGpu);
+     NvU32      gpuMaskUnused;
++    NvU32      emptyPollCount = 0;
+ 
+ #if defined(GSPRM_HWASAN_ENABLE)
+     //
+@@ -3470,7 +3471,10 @@ kgspRecvPoll_IMPL
+         }
+ 
+         {
+-            osSpinLoop();
++            // Long waits (slow GSP RPC): after 32 empty polls back off with extra PAUSEs between PCIe RX-head reads.
++            NvU32 spins = (emptyPollCount++ >= 32) ? 4 : 1;
++            while (spins--)
++                osSpinLoop();
+         }
+     }
+ 

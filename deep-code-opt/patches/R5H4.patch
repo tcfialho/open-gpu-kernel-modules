@@ -1,0 +1,33 @@
+diff --git a/src/nvidia/src/kernel/gpu/gsp/kernel_gsp.c b/src/nvidia/src/kernel/gpu/gsp/kernel_gsp.c
+index 46d5b50..2fb665c 100644
+--- a/src/nvidia/src/kernel/gpu/gsp/kernel_gsp.c
++++ b/src/nvidia/src/kernel/gpu/gsp/kernel_gsp.c
+@@ -2067,8 +2067,9 @@ _kgspRpcDrainEvents
+                                          pConditionFunc, pConditionData);
+         if (nvStatus == NV_OK)
+             nEventsHandled++;
+-        kgspDumpGspLogs(pKernelGsp, NV_FALSE);
+     }
++    // one log dump per drain call instead of one per event
++    kgspDumpGspLogs(pKernelGsp, NV_FALSE);
+ 
+     //
+     // The health check costs MMIO reads over PCIe (CrashCat queue pointers).
+@@ -3302,6 +3303,7 @@ kgspRecvPoll_IMPL
+     NvU32      timeoutFlags;
+     NvBool     bSlowGspRpc = !IS_SILICON(pGpu);
+     NvU32      gpuMaskUnused;
++    NvU32      sanityPollCount = 0;
+ 
+ #if defined(GSPRM_HWASAN_ENABLE)
+     //
+@@ -3405,7 +3407,8 @@ kgspRecvPoll_IMPL
+                 goto done;
+         }
+ 
+-        rpcStatus = _kgspRpcSanityCheck(pGpu, pKernelGsp, pRpc);
++        // GPU-state sanity checks are only needed periodically while spinning for a response
++        rpcStatus = ((sanityPollCount++ & 0x7) == 0) ? _kgspRpcSanityCheck(pGpu, pKernelGsp, pRpc) : NV_OK;
+         if (rpcStatus != NV_OK)
+         {
+             if (!pRpc->bQuietPrints)

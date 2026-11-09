@@ -1,0 +1,41 @@
+diff --git a/src/nvidia/src/kernel/gpu/gsp/kernel_gsp.c b/src/nvidia/src/kernel/gpu/gsp/kernel_gsp.c
+index 46d5b50..d15b2ed 100644
+--- a/src/nvidia/src/kernel/gpu/gsp/kernel_gsp.c
++++ b/src/nvidia/src/kernel/gpu/gsp/kernel_gsp.c
+@@ -3302,6 +3302,9 @@ kgspRecvPoll_IMPL
+     NvU32      timeoutFlags;
+     NvBool     bSlowGspRpc = !IS_SILICON(pGpu);
+     NvU32      gpuMaskUnused;
++    NvU32      vblankPollCount = 0;
++    NvU32      timeoutPollCount = 0;
++    NvU32      emptyPollCount = 0;
+ 
+ #if defined(GSPRM_HWASAN_ENABLE)
+     //
+@@ -3383,7 +3386,8 @@ kgspRecvPoll_IMPL
+         // Check for GPU timeout, save that information, and then verify if the RPC is completed.
+         // Otherwise if the CPU thread goes to sleep immediately after the RPC check, it may result in hitting a timeout.
+         //
+-        timeoutStatus = gpuCheckTimeout(pGpu, &timeout);
++        if ((timeoutPollCount++ & 0x7) == 0)
++            timeoutStatus = gpuCheckTimeout(pGpu, &timeout);
+ 
+         rpcStatus = _kgspRpcDrainEvents(pGpu, pKernelGsp, expectedFunc, expectedSequence, rpcHandlerContext,
+                                         pConditionFunc, pConditionData);
+@@ -3466,11 +3470,14 @@ kgspRecvPoll_IMPL
+             pKernelDisplay->getProperty(pKernelDisplay, PDB_PROP_KDISP_ENABLE_INLINE_INTR_SERVICE) &&
+             !pKernelDisplay->getProperty(pKernelDisplay, PDB_PROP_KDISP_HAS_SEPARATE_LOW_LATENCY_LINE))
+         {
+-            kdispApplyAggressiveVblankHandlingWar(pGpu, pKernelDisplay);
++            if ((vblankPollCount++ & 0x7) == 0)
++                kdispApplyAggressiveVblankHandlingWar(pGpu, pKernelDisplay);
+         }
+ 
+         {
+-            osSpinLoop();
++            NvU32 spins = (emptyPollCount++ >= 32) ? 4 : 1;
++            while (spins--)
++                osSpinLoop();
+         }
+     }
+ 

@@ -1,0 +1,29 @@
+diff --git a/src/nvidia/src/kernel/gpu/intr/arch/turing/intr_nonstall_tu102.c b/src/nvidia/src/kernel/gpu/intr/arch/turing/intr_nonstall_tu102.c
+index 6cc1e2c..10bf2b9 100644
+--- a/src/nvidia/src/kernel/gpu/intr/arch/turing/intr_nonstall_tu102.c
++++ b/src/nvidia/src/kernel/gpu/intr/arch/turing/intr_nonstall_tu102.c
+@@ -413,6 +413,8 @@ intrServiceNonStall_TU102
+     NV_STATUS   tmpStatus   = NV_OK;
+     NvU32       i, pending;
+     NvU32       intr, intrVector;
++    NvU32       topIdxCached = 0xFFFFFFFF;
++    NvU32       topPendingCached = 0;
+ 
+     bitVectorClrAll(pEngines);
+ 
+@@ -433,8 +435,13 @@ intrServiceNonStall_TU102
+     FOR_EACH_INDEX_IN_MASK(64, i, intrGetIntrTopNonStallMask_HAL(pGpu, pIntr))
+     {
+         NvU32 j = NV_CTRL_INTR_SUBTREE_TO_TOP_IDX(i);
+-        // TODO Bug 3823562: optimize this and don't read on every loop
+-        pending = intrReadRegTop_HAL(pGpu, pIntr, j, pThreadState);
++        // Bug 3823562: one MMIO read per distinct INTR_TOP index per pass (was: one per subtree)
++        if (j != topIdxCached)
++        {
++            topPendingCached = intrReadRegTop_HAL(pGpu, pIntr, j, pThreadState);
++            topIdxCached = j;
++        }
++        pending = topPendingCached;
+ 
+         if ((pending & (NV_VIRTUAL_FUNCTION_PRIV_CPU_INTR_TOP_SUBTREE_INTR_PENDING << NV_CTRL_INTR_SUBTREE_TO_TOP_BIT(i))) == 0)
+         {

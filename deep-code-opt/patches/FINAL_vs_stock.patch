@@ -1,0 +1,128 @@
+diff --git a/.optflags b/.optflags
+new file mode 100644
+index 0000000..9b80f39
+--- /dev/null
++++ b/.optflags
+@@ -0,0 +1 @@
++-O3 -pipe -mtune=native -flto=thin -fno-semantic-interposition -falign-functions=32 -falign-loops=32 -fomit-frame-pointer -fno-math-errno -fno-trapping-math
+diff --git a/src/nvidia/arch/nvalloc/unix/src/unix_intr.c b/src/nvidia/arch/nvalloc/unix/src/unix_intr.c
+index aef36ab..0e56f8f 100644
+--- a/src/nvidia/arch/nvalloc/unix/src/unix_intr.c
++++ b/src/nvidia/arch/nvalloc/unix/src/unix_intr.c
+@@ -36,6 +36,7 @@
+ #include <nv_sriov_defines.h>
+ 
+ #include "platform/sli/sli.h"
++#include "published/turing/tu102/dev_vm.h"
+ 
+ //
+ // Service Interrupts that are not Masked when using
+@@ -272,12 +273,27 @@ static NvBool osInterruptPending(
+             if ((pIntr != NULL) && (INTERRUPT_TYPE_HARDWARE == intrGetIntrEn(pIntr)))
+             {
+                 NvBool bCtxswLog = NV_FALSE;
+-                intrGetPendingNonStall_HAL(pGpu, pIntr, &intr1Pending, &threadState);
+-                intrCheckFecsEventbufferPending(pGpu, pIntr, &intr1Pending, &bCtxswLog);
+-                if (!bitVectorTestAllCleared(&intr1Pending))
++                if (IS_GSP_CLIENT(pGpu) && !IS_VIRTUAL(pGpu) && !IS_GPU_GC6_STATE_ENTERED(pGpu))
+                 {
++                    // GSP client: the service pass reads INTR_TOP itself and returns an empty engine set when no
++                    // non-stall subtree is pending, so no separate gate read is needed.
++                    NvBool bFecsPending;
++                    bitVectorClrAll(&intr1Pending);
++                    intrCheckFecsEventbufferPending(pGpu, pIntr, &intr1Pending, &bCtxswLog);
++                    bFecsPending = !bitVectorTestAllCleared(&intr1Pending);
+                     intrServiceNonStall_HAL(pGpu, pIntr, &intr1Pending, &threadState);
+-                    *serviced = NV_TRUE;
++                    if (bFecsPending || !bitVectorTestAllCleared(&intr1Pending))
++                        *serviced = NV_TRUE;
++                }
++                else
++                {
++                    intrGetPendingNonStall_HAL(pGpu, pIntr, &intr1Pending, &threadState);
++                    intrCheckFecsEventbufferPending(pGpu, pIntr, &intr1Pending, &bCtxswLog);
++                    if (!bitVectorTestAllCleared(&intr1Pending))
++                    {
++                        intrServiceNonStall_HAL(pGpu, pIntr, &intr1Pending, &threadState);
++                        *serviced = NV_TRUE;
++                    }
+                 }
+ 
+                 //
+diff --git a/src/nvidia/src/kernel/gpu/intr/arch/turing/intr_nonstall_tu102.c b/src/nvidia/src/kernel/gpu/intr/arch/turing/intr_nonstall_tu102.c
+index 6cc1e2c..f9607bc 100644
+--- a/src/nvidia/src/kernel/gpu/intr/arch/turing/intr_nonstall_tu102.c
++++ b/src/nvidia/src/kernel/gpu/intr/arch/turing/intr_nonstall_tu102.c
+@@ -245,8 +245,10 @@ intrGetPendingNonStall_TU102
+         for (j = NV_CTRL_INTR_SUBTREE_TO_LEAF_IDX_START(i); j <= NV_CTRL_INTR_SUBTREE_TO_LEAF_IDX_END(i); j++)
+         {
+             InterruptTableIter iter;
+-            NvU32 intr = intrReadRegLeaf_HAL(pGpu, pIntr, j, pThreadState) &
+-                         intrReadRegLeafEnSet_HAL(pGpu, pIntr, j, pThreadState);
++            // LEAF==0 makes the AND zero regardless of EN_SET: skip the second MMIO read
++            NvU32 intr = intrReadRegLeaf_HAL(pGpu, pIntr, j, pThreadState);
++            if (intr != 0)
++                intr &= intrReadRegLeafEnSet_HAL(pGpu, pIntr, j, pThreadState);
+             if (intr == 0)
+             {
+                 continue;
+@@ -443,8 +445,9 @@ intrServiceNonStall_TU102
+ 
+         for (j = NV_CTRL_INTR_SUBTREE_TO_LEAF_IDX_START(i); j <= NV_CTRL_INTR_SUBTREE_TO_LEAF_IDX_END(i); j++)
+         {
+-            intr = intrReadRegLeaf_HAL(pGpu, pIntr, j, pThreadState) &
+-                   intrReadRegLeafEnSet_HAL(pGpu, pIntr, j, pThreadState);
++            intr = intrReadRegLeaf_HAL(pGpu, pIntr, j, pThreadState);
++            if (intr != 0)
++                intr &= intrReadRegLeafEnSet_HAL(pGpu, pIntr, j, pThreadState);
+             if (intr == 0)
+             {
+                 continue;
+diff --git a/src/nvidia/src/kernel/gpu/intr/arch/turing/intr_tu102.c b/src/nvidia/src/kernel/gpu/intr/arch/turing/intr_tu102.c
+index f1da0e0..18a0254 100644
+--- a/src/nvidia/src/kernel/gpu/intr/arch/turing/intr_tu102.c
++++ b/src/nvidia/src/kernel/gpu/intr/arch/turing/intr_tu102.c
+@@ -830,7 +830,7 @@ intrGetLocklessVectorsInRmSubtree_TU102
+  * @param[out]  pLeafVals  array that leaf values will be returned in.
+  *                         assumes that it is sufficiently large
+  */
+-static NV_STATUS
++static NV_STATUS __attribute__((unused))
+ _intrGetLeafStatus_TU102
+ (
+     OBJGPU             *pGpu,
+@@ -932,12 +932,14 @@ intrGetPendingStallEngines_TU102
+         return NV_OK;
+     }
+ 
+-    NV_ASSERT_OK_OR_RETURN(_intrGetLeafStatus_TU102(pGpu,
+-                                                    pIntr,
+-                                                    bUseCachedRegVal,
+-                                                    cachedStaticRegVal,
+-                                                    intrLeafValues,
+-                                                    pThreadState));
++    // Leaf registers are read lazily below, only for leaves that actually hold a stall vector of a table engine
++    NvU32 leafReadMask = 0;
++    NvBool bEvenLeavesOnly = pIntr->getProperty(pIntr, PDB_PROP_INTR_READ_ONLY_EVEN_NUMBERED_INTR_LEAF_REGS);
++    if (bUseCachedRegVal)
++    {
++        intrLeafValues[4] = cachedStaticRegVal;
++        leafReadMask |= NVBIT(4);
++    }
+     NV_ASSERT_OK_OR_RETURN(intrGetInterruptTable_HAL(pGpu, pIntr, &pIntrTable));
+ 
+     for (iter = vectIterAll(pIntrTable); vectIterNext(&iter);)
+@@ -982,6 +984,13 @@ intrGetPendingStallEngines_TU102
+         // for engines that haven't yet switched would be INVALID, so we'd never
+         // get here anyway.
+         //
++        if (!(leafReadMask & NVBIT(leafIndex)))
++        {
++            leafReadMask |= NVBIT(leafIndex);
++            if (!(bEvenLeavesOnly && (leafIndex & 1)))
++                intrLeafValues[leafIndex] = intrReadRegLeaf_HAL(pGpu, pIntr, leafIndex, pThreadState);
++        }
++
+         leaf = intrLeafValues[leafIndex] & NVBIT(leafBit);
+ 
+         if (leaf == 0)

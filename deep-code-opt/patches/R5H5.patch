@@ -1,0 +1,199 @@
+diff --git a/kernel-open/nvidia-uvm/uvm_common.c b/kernel-open/nvidia-uvm/uvm_common.c
+index 5f84200..5f3a282 100644
+--- a/kernel-open/nvidia-uvm/uvm_common.c
++++ b/kernel-open/nvidia-uvm/uvm_common.c
+@@ -248,7 +248,15 @@ void on_uvm_assert(void)
+ 
+ NV_STATUS uvm_spin_loop(uvm_spin_loop_t *spin)
+ {
+-    NvU64 curr = NV_GETTIME();
++    NvU64 curr;
++
++    // The clock read (ktime_get_raw_ts64) dominates a spin iteration; the schedule/print thresholds are ms..s, so sample every 16th call.
++    if ((spin->iter++ & 0xF) != 0) {
++        cpu_relax();
++        return NV_OK;
++    }
++
++    curr = NV_GETTIME();
+ 
+     // This schedule() is required for functionality, not just system
+     // performance. It allows RM to run and unblock the UVM driver:
+diff --git a/kernel-open/nvidia-uvm/uvm_common.h b/kernel-open/nvidia-uvm/uvm_common.h
+index 16221a6..818e739 100644
+--- a/kernel-open/nvidia-uvm/uvm_common.h
++++ b/kernel-open/nvidia-uvm/uvm_common.h
+@@ -265,6 +265,7 @@ typedef struct
+ {
+     NvU64 start_time_ns;
+     NvU64 print_time_ns;
++    NvU32 iter;
+ } uvm_spin_loop_t;
+ 
+ static inline void uvm_spin_loop_init(uvm_spin_loop_t *spin)
+@@ -272,6 +273,7 @@ static inline void uvm_spin_loop_init(uvm_spin_loop_t *spin)
+     NvU64 curr = NV_GETTIME();
+     spin->start_time_ns = curr;
+     spin->print_time_ns = curr;
++    spin->iter = 0;
+ }
+ 
+ // Periodically yields the CPU when not called from interrupt context. Returns
+diff --git a/kernel-open/nvidia-uvm/uvm_gpu_semaphore.c b/kernel-open/nvidia-uvm/uvm_gpu_semaphore.c
+index 478c1aa..57a6c1e 100644
+--- a/kernel-open/nvidia-uvm/uvm_gpu_semaphore.c
++++ b/kernel-open/nvidia-uvm/uvm_gpu_semaphore.c
+@@ -862,5 +862,11 @@ bool uvm_gpu_tracking_semaphore_is_value_completed(uvm_gpu_tracking_semaphore_t
+         return true;
+     }
+ 
++    // No progress since the last update (payload == low 32 bits of completed_value): the locked update would just
++    // return the old, smaller value, so skip taking the lock/mutex on every poll iteration.
++    if (!gpu_semaphore_is_secure(&tracking_sem->semaphore) &&
++        (NvU32)completed == uvm_gpu_semaphore_get_payload(&tracking_sem->semaphore))
++        return false;
++
+     return uvm_gpu_tracking_semaphore_update_completed_value(tracking_sem) >= value;
+ }
+diff --git a/kernel-open/nvidia/nv.c b/kernel-open/nvidia/nv.c
+index a7efd3e..27c40db 100644
+--- a/kernel-open/nvidia/nv.c
++++ b/kernel-open/nvidia/nv.c
+@@ -2645,6 +2645,7 @@ nvidia_ioctl(
+     void *arg_copy = NULL;
+     size_t arg_size = 0;
+     int arg_cmd;
++    char arg_stack_buf[256] __aligned(16);
+ 
+     if (nv_validate_ioctls(cmd) != NV_OK)
+     {
+@@ -2692,7 +2693,11 @@ nvidia_ioctl(
+         }
+     }
+ 
+-    NV_KMALLOC(arg_copy, arg_size);
++    // Most RM ioctl argument blocks are small: copy them through the stack instead of a kmalloc/kfree pair
++    if (arg_size <= sizeof(arg_stack_buf))
++        arg_copy = arg_stack_buf;
++    else
++        NV_KMALLOC(arg_copy, arg_size);
+     if (arg_copy == NULL)
+     {
+         nv_printf(NV_DBG_ERRORS, "NVRM: failed to allocate ioctl memory\n");
+@@ -3005,7 +3010,8 @@ done_early:
+                 status = -EFAULT;
+             }
+         }
+-        NV_KFREE(arg_copy, arg_size);
++        if (arg_copy != arg_stack_buf)
++            NV_KFREE(arg_copy, arg_size);
+     }
+ 
+     return status;
+diff --git a/src/nvidia/src/kernel/gpu/gsp/kernel_gsp.c b/src/nvidia/src/kernel/gpu/gsp/kernel_gsp.c
+index 46d5b50..d15b2ed 100644
+--- a/src/nvidia/src/kernel/gpu/gsp/kernel_gsp.c
++++ b/src/nvidia/src/kernel/gpu/gsp/kernel_gsp.c
+@@ -3302,6 +3302,9 @@ kgspRecvPoll_IMPL
+     NvU32      timeoutFlags;
+     NvBool     bSlowGspRpc = !IS_SILICON(pGpu);
+     NvU32      gpuMaskUnused;
++    NvU32      vblankPollCount = 0;
++    NvU32      timeoutPollCount = 0;
++    NvU32      emptyPollCount = 0;
+ 
+ #if defined(GSPRM_HWASAN_ENABLE)
+     //
+@@ -3383,7 +3386,8 @@ kgspRecvPoll_IMPL
+         // Check for GPU timeout, save that information, and then verify if the RPC is completed.
+         // Otherwise if the CPU thread goes to sleep immediately after the RPC check, it may result in hitting a timeout.
+         //
+-        timeoutStatus = gpuCheckTimeout(pGpu, &timeout);
++        if ((timeoutPollCount++ & 0x7) == 0)
++            timeoutStatus = gpuCheckTimeout(pGpu, &timeout);
+ 
+         rpcStatus = _kgspRpcDrainEvents(pGpu, pKernelGsp, expectedFunc, expectedSequence, rpcHandlerContext,
+                                         pConditionFunc, pConditionData);
+@@ -3466,11 +3470,14 @@ kgspRecvPoll_IMPL
+             pKernelDisplay->getProperty(pKernelDisplay, PDB_PROP_KDISP_ENABLE_INLINE_INTR_SERVICE) &&
+             !pKernelDisplay->getProperty(pKernelDisplay, PDB_PROP_KDISP_HAS_SEPARATE_LOW_LATENCY_LINE))
+         {
+-            kdispApplyAggressiveVblankHandlingWar(pGpu, pKernelDisplay);
++            if ((vblankPollCount++ & 0x7) == 0)
++                kdispApplyAggressiveVblankHandlingWar(pGpu, pKernelDisplay);
+         }
+ 
+         {
+-            osSpinLoop();
++            NvU32 spins = (emptyPollCount++ >= 32) ? 4 : 1;
++            while (spins--)
++                osSpinLoop();
+         }
+     }
+ 
+diff --git a/src/nvidia/src/kernel/gpu/intr/arch/turing/intr_nonstall_tu102.c b/src/nvidia/src/kernel/gpu/intr/arch/turing/intr_nonstall_tu102.c
+index f9607bc..4ce6d2a 100644
+--- a/src/nvidia/src/kernel/gpu/intr/arch/turing/intr_nonstall_tu102.c
++++ b/src/nvidia/src/kernel/gpu/intr/arch/turing/intr_nonstall_tu102.c
+@@ -183,6 +183,27 @@ intrRestoreNonStall_TU102
+     }
+ }
+ 
++// True if some engine in the table has a non-stall vector in leaf 'leafIdx' (otherwise the leaf never matters)
++static NvBool
++_intrLeafHasNonStallVector
++(
++    InterruptTable *pIntrTable,
++    NvU32           leafIdx
++)
++{
++    InterruptTableIter iter;
++
++    for (iter = vectIterAll(pIntrTable); vectIterNext(&iter);)
++    {
++        NvU32 vec = ((INTR_TABLE_ENTRY *)iter.pValue)->intrVectorNonStall;
++        if ((vec != NV_INTR_VECTOR_INVALID) &&
++            (vec >= NV_CTRL_INTR_LEAF_IDX_TO_GPU_VECTOR_START(leafIdx)) &&
++            (vec <= NV_CTRL_INTR_LEAF_IDX_TO_GPU_VECTOR_END(leafIdx)))
++            return NV_TRUE;
++    }
++    return NV_FALSE;
++}
++
+ /*!
+  * @brief get a bitvector of engines with pending nonstall interrupts
+  *
+@@ -245,6 +266,8 @@ intrGetPendingNonStall_TU102
+         for (j = NV_CTRL_INTR_SUBTREE_TO_LEAF_IDX_START(i); j <= NV_CTRL_INTR_SUBTREE_TO_LEAF_IDX_END(i); j++)
+         {
+             InterruptTableIter iter;
++            if (!_intrLeafHasNonStallVector(pIntrTable, j))
++                continue;
+             // LEAF==0 makes the AND zero regardless of EN_SET: skip the second MMIO read
+             NvU32 intr = intrReadRegLeaf_HAL(pGpu, pIntr, j, pThreadState);
+             if (intr != 0)
+@@ -415,6 +438,8 @@ intrServiceNonStall_TU102
+     NV_STATUS   tmpStatus   = NV_OK;
+     NvU32       i, pending;
+     NvU32       intr, intrVector;
++    NvU32       topIdxCached = 0xFFFFFFFF;
++    NvU32       topPendingCached = 0;
+ 
+     bitVectorClrAll(pEngines);
+ 
+@@ -435,8 +460,13 @@ intrServiceNonStall_TU102
+     FOR_EACH_INDEX_IN_MASK(64, i, intrGetIntrTopNonStallMask_HAL(pGpu, pIntr))
+     {
+         NvU32 j = NV_CTRL_INTR_SUBTREE_TO_TOP_IDX(i);
+-        // TODO Bug 3823562: optimize this and don't read on every loop
+-        pending = intrReadRegTop_HAL(pGpu, pIntr, j, pThreadState);
++        // Bug 3823562: one MMIO read per distinct INTR_TOP index per pass (was: one per subtree)
++        if (j != topIdxCached)
++        {
++            topPendingCached = intrReadRegTop_HAL(pGpu, pIntr, j, pThreadState);
++            topIdxCached = j;
++        }
++        pending = topPendingCached;
+ 
+         if ((pending & (NV_VIRTUAL_FUNCTION_PRIV_CPU_INTR_TOP_SUBTREE_INTR_PENDING << NV_CTRL_INTR_SUBTREE_TO_TOP_BIT(i))) == 0)
+         {

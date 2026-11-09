@@ -1,0 +1,66 @@
+diff --git a/src/nvidia/src/kernel/gpu/intr/arch/turing/intr_nonstall_tu102.c b/src/nvidia/src/kernel/gpu/intr/arch/turing/intr_nonstall_tu102.c
+index f9607bc..4ce6d2a 100644
+--- a/src/nvidia/src/kernel/gpu/intr/arch/turing/intr_nonstall_tu102.c
++++ b/src/nvidia/src/kernel/gpu/intr/arch/turing/intr_nonstall_tu102.c
+@@ -183,6 +183,27 @@ intrRestoreNonStall_TU102
+     }
+ }
+ 
++// True if some engine in the table has a non-stall vector in leaf 'leafIdx' (otherwise the leaf never matters)
++static NvBool
++_intrLeafHasNonStallVector
++(
++    InterruptTable *pIntrTable,
++    NvU32           leafIdx
++)
++{
++    InterruptTableIter iter;
++
++    for (iter = vectIterAll(pIntrTable); vectIterNext(&iter);)
++    {
++        NvU32 vec = ((INTR_TABLE_ENTRY *)iter.pValue)->intrVectorNonStall;
++        if ((vec != NV_INTR_VECTOR_INVALID) &&
++            (vec >= NV_CTRL_INTR_LEAF_IDX_TO_GPU_VECTOR_START(leafIdx)) &&
++            (vec <= NV_CTRL_INTR_LEAF_IDX_TO_GPU_VECTOR_END(leafIdx)))
++            return NV_TRUE;
++    }
++    return NV_FALSE;
++}
++
+ /*!
+  * @brief get a bitvector of engines with pending nonstall interrupts
+  *
+@@ -245,6 +266,8 @@ intrGetPendingNonStall_TU102
+         for (j = NV_CTRL_INTR_SUBTREE_TO_LEAF_IDX_START(i); j <= NV_CTRL_INTR_SUBTREE_TO_LEAF_IDX_END(i); j++)
+         {
+             InterruptTableIter iter;
++            if (!_intrLeafHasNonStallVector(pIntrTable, j))
++                continue;
+             // LEAF==0 makes the AND zero regardless of EN_SET: skip the second MMIO read
+             NvU32 intr = intrReadRegLeaf_HAL(pGpu, pIntr, j, pThreadState);
+             if (intr != 0)
+@@ -415,6 +438,8 @@ intrServiceNonStall_TU102
+     NV_STATUS   tmpStatus   = NV_OK;
+     NvU32       i, pending;
+     NvU32       intr, intrVector;
++    NvU32       topIdxCached = 0xFFFFFFFF;
++    NvU32       topPendingCached = 0;
+ 
+     bitVectorClrAll(pEngines);
+ 
+@@ -435,8 +460,13 @@ intrServiceNonStall_TU102
+     FOR_EACH_INDEX_IN_MASK(64, i, intrGetIntrTopNonStallMask_HAL(pGpu, pIntr))
+     {
+         NvU32 j = NV_CTRL_INTR_SUBTREE_TO_TOP_IDX(i);
+-        // TODO Bug 3823562: optimize this and don't read on every loop
+-        pending = intrReadRegTop_HAL(pGpu, pIntr, j, pThreadState);
++        // Bug 3823562: one MMIO read per distinct INTR_TOP index per pass (was: one per subtree)
++        if (j != topIdxCached)
++        {
++            topPendingCached = intrReadRegTop_HAL(pGpu, pIntr, j, pThreadState);
++            topIdxCached = j;
++        }
++        pending = topPendingCached;
+ 
+         if ((pending & (NV_VIRTUAL_FUNCTION_PRIV_CPU_INTR_TOP_SUBTREE_INTR_PENDING << NV_CTRL_INTR_SUBTREE_TO_TOP_BIT(i))) == 0)
+         {

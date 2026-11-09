@@ -1,0 +1,4 @@
+{"label": "asis_1", "ops": 9840, "irqs": 9840, "irqs_per_fence": 1.0, "dmesg_novos_erros": 0}
+{"label": "FINAL_1", "ops": 9840, "irqs": 9840, "irqs_per_fence": 1.0, "dmesg_novos_erros": 0}
+{"label": "asis_2", "ops": 9840, "irqs": 9840, "irqs_per_fence": 1.0, "dmesg_novos_erros": 0}
+{"label": "FINAL_2", "ops": 9840, "irqs": 9840, "irqs_per_fence": 1.0, "dmesg_novos_erros": 0}

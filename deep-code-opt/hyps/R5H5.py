@@ -1,0 +1,1 @@
+exec(open("/home/tcfialho/build-optimizations/nvidia-open/hyps/R5H1.py").read()); exec(open("/home/tcfialho/build-optimizations/nvidia-open/hyps/R5H2.py").read()); exec(open("/home/tcfialho/build-optimizations/nvidia-open/hyps/R5H3.py").read()); exec(open("/home/tcfialho/build-optimizations/nvidia-open/hyps/R4H3.py").read())

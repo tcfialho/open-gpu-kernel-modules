@@ -1,0 +1,23 @@
+diff --git a/src/nvidia/src/kernel/gpu/gsp/kernel_gsp.c b/src/nvidia/src/kernel/gpu/gsp/kernel_gsp.c
+index 46d5b50..a6b858c 100644
+--- a/src/nvidia/src/kernel/gpu/gsp/kernel_gsp.c
++++ b/src/nvidia/src/kernel/gpu/gsp/kernel_gsp.c
+@@ -3302,6 +3302,7 @@ kgspRecvPoll_IMPL
+     NvU32      timeoutFlags;
+     NvBool     bSlowGspRpc = !IS_SILICON(pGpu);
+     NvU32      gpuMaskUnused;
++    NvU32      vblankPollCount = 0;
+ 
+ #if defined(GSPRM_HWASAN_ENABLE)
+     //
+@@ -3466,7 +3467,9 @@ kgspRecvPoll_IMPL
+             pKernelDisplay->getProperty(pKernelDisplay, PDB_PROP_KDISP_ENABLE_INLINE_INTR_SERVICE) &&
+             !pKernelDisplay->getProperty(pKernelDisplay, PDB_PROP_KDISP_HAS_SEPARATE_LOW_LATENCY_LINE))
+         {
+-            kdispApplyAggressiveVblankHandlingWar(pGpu, pKernelDisplay);
++            // Each check is an MMIO read over PCIe: look at every 8th poll iteration (~ well under one scanline).
++            if ((vblankPollCount++ & 0x7) == 0)
++                kdispApplyAggressiveVblankHandlingWar(pGpu, pKernelDisplay);
+         }
+ 
+         {

@@ -1,0 +1,486 @@
+{
+ "name": "aa2",
+ "dirA": "/home/tcfialho/build-optimizations/nvidia-open/mods/asis",
+ "dirB": "/home/tcfialho/build-optimizations/nvidia-open/mods/asis",
+ "rounds": 6,
+ "dmesg_new_errors": 0,
+ "bench_secs": 52.8,
+ "summary": {
+  "kcycles": {
+   "A": 2127691502.0,
+   "B": 2116547429.5,
+   "madA": 9135295.0,
+   "madB": 8978336.5,
+   "delta_pct": -0.5237635479356255,
+   "mad_comb_pct": 0.6020023346926787,
+   "significant": false
+  },
+  "kinstr": {
+   "A": 1239542341.0,
+   "B": 1245028347.5,
+   "madA": 17619672.5,
+   "madB": 11641358.5,
+   "delta_pct": 0.4425832275785084,
+   "mad_comb_pct": 1.7037012661956485,
+   "significant": false
+  },
+  "submit_sync": {
+   "A": 3.591225,
+   "B": 3.5851249999999997,
+   "madA": 0.010874999999999968,
+   "madB": 0.015225000000000044,
+   "delta_pct": -0.16985847447599184,
+   "mad_comb_pct": 0.5209937404595293,
+   "significant": false
+  },
+  "event_sync": {
+   "A": 3.8148,
+   "B": 3.796925,
+   "madA": 0.017674999999999885,
+   "madB": 0.015225000000000044,
+   "delta_pct": -0.46856978085352013,
+   "mad_comb_pct": 0.6115190470870353,
+   "significant": false
+  },
+  "dma4k": {
+   "A": 3.8687,
+   "B": 3.8673,
+   "madA": 0.030624999999999902,
+   "madB": 0.030874999999999986,
+   "delta_pct": -0.03618786672525256,
+   "mad_comb_pct": 1.1240837062505362,
+   "significant": false
+  },
+  "dma64k": {
+   "A": 8.425674999999998,
+   "B": 8.4189,
+   "madA": 0.005074999999997942,
+   "madB": 0.004700000000000593,
+   "delta_pct": -0.0804089880038992,
+   "mad_comb_pct": 0.08209494434629397,
+   "significant": false
+  },
+  "malloc_free": {
+   "A": 1.0327000000000002,
+   "B": 1.030125,
+   "madA": 0.0040999999999998815,
+   "madB": 0.0019000000000000128,
+   "delta_pct": -0.2493463735838303,
+   "mad_comb_pct": 0.4375761993878085,
+   "significant": false
+  },
+  "stream_cd": {
+   "A": 0.7066250000000001,
+   "B": 0.705625,
+   "madA": 0.0020749999999999935,
+   "madB": 0.0030000000000000027,
+   "delta_pct": -0.14151777817089856,
+   "mad_comb_pct": 0.5162126479656243,
+   "significant": false
+  },
+  "event_cd": {
+   "A": 0.1551,
+   "B": 0.1552,
+   "madA": 0.0005499999999999811,
+   "madB": 0.0005500000000000088,
+   "delta_pct": 0.06447453255964974,
+   "mad_comb_pct": 0.5014941710542844,
+   "significant": false
+  },
+  "managed_fault": {
+   "A": 66.06545,
+   "B": 66.02525,
+   "madA": 0.2603250000000017,
+   "madB": 0.27567499999999256,
+   "delta_pct": -0.06084874923276642,
+   "mad_comb_pct": 0.5739227128374369,
+   "significant": false
+  }
+ },
+ "runs": [
+  {
+   "label": "A",
+   "secs": 2.2,
+   "med": {
+    "submit_sync": 3.6101,
+    "event_sync": 3.8143,
+    "dma4k": 3.8973,
+    "dma64k": 8.43215,
+    "malloc_free": 1.0342,
+    "stream_cd": 0.71155,
+    "event_cd": 0.1553,
+    "managed_fault": 65.9452,
+    "kcycles": 2136637917.0,
+    "kinstr": 1242887925.0
+   }
+  },
+  {
+   "label": "B",
+   "secs": 2.2,
+   "med": {
+    "submit_sync": 3.55655,
+    "event_sync": 3.7984,
+    "dma4k": 3.8893,
+    "dma64k": 8.41925,
+    "malloc_free": 1.0287,
+    "stream_cd": 0.70895,
+    "event_cd": 0.1573,
+    "managed_fault": 65.97305,
+    "kcycles": 2110962681.0,
+    "kinstr": 1246624204.0
+   }
+  },
+  {
+   "label": "B",
+   "secs": 2.2,
+   "med": {
+    "submit_sync": 3.5664,
+    "event_sync": 3.84825,
+    "dma4k": 3.86795,
+    "dma64k": 8.41855,
+    "malloc_free": 1.0267,
+    "stream_cd": 0.70295,
+    "event_cd": 0.1554,
+    "managed_fault": 65.63,
+    "kcycles": 2106139869.0,
+    "kinstr": 1218502896.0
+   }
+  },
+  {
+   "label": "A",
+   "secs": 2.2,
+   "med": {
+    "submit_sync": 3.59065,
+    "event_sync": 3.81205,
+    "dma4k": 3.8666,
+    "dma64k": 8.432549999999999,
+    "malloc_free": 1.0374,
+    "stream_cd": 0.7066,
+    "event_cd": 0.1549,
+    "managed_fault": 66.59684999999999,
+    "kcycles": 2148656457.0,
+    "kinstr": 1280225440.0
+   }
+  },
+  {
+   "label": "B",
+   "secs": 2.2,
+   "med": {
+    "submit_sync": 3.56355,
+    "event_sync": 3.8126,
+    "dma4k": 3.8189,
+    "dma64k": 8.4275,
+    "malloc_free": 1.03015,
+    "stream_cd": 0.7111,
+    "event_cd": 0.1555,
+    "managed_fault": 65.98135,
+    "kcycles": 2130430208.0,
+    "kinstr": 1241323046.0
+   }
+  },
+  {
+   "label": "A",
+   "secs": 2.2,
+   "med": {
+    "submit_sync": 3.5946499999999997,
+    "event_sync": 3.8367,
+    "dma4k": 3.8931,
+    "dma64k": 8.42995,
+    "malloc_free": 1.0275,
+    "stream_cd": 0.6998,
+    "event_cd": 0.1547,
+    "managed_fault": 65.87944999999999,
+    "kcycles": 2135783340.0,
+    "kinstr": 1260572873.0
+   }
+  },
+  {
+   "label": "A",
+   "secs": 2.2,
+   "med": {
+    "submit_sync": 3.5852,
+    "event_sync": 3.7776,
+    "dma4k": 3.7967000000000004,
+    "dma64k": 8.4213,
+    "malloc_free": 1.0312000000000001,
+    "stream_cd": 0.7079,
+    "event_cd": 0.1551,
+    "managed_fault": 66.44800000000001,
+    "kcycles": 2125335589.0,
+    "kinstr": 1235993126.0
+   }
+  },
+  {
+   "label": "B",
+   "secs": 2.2,
+   "med": {
+    "submit_sync": 3.5762,
+    "event_sync": 3.8117,
+    "dma4k": 3.7871,
+    "dma64k": 8.415949999999999,
+    "malloc_free": 1.0363,
+    "stream_cd": 0.71625,
+    "event_cd": 0.1567,
+    "managed_fault": 65.89529999999999,
+    "kcycles": 2108784863.0,
+    "kinstr": 1232366713.0
+   }
+  },
+  {
+   "label": "A",
+   "secs": 2.2,
+   "med": {
+    "submit_sync": 3.607,
+    "event_sync": 3.7987,
+    "dma4k": 3.8708,
+    "dma64k": 8.426749999999998,
+    "malloc_free": 1.0353500000000002,
+    "stream_cd": 0.70375,
+    "event_cd": 0.1551,
+    "managed_fault": 65.8206,
+    "kcycles": 2106945086.0,
+    "kinstr": 1222358253.0
+   }
+  },
+  {
+   "label": "B",
+   "secs": 2.2,
+   "med": {
+    "submit_sync": 3.5942999999999996,
+    "event_sync": 3.7773000000000003,
+    "dma4k": 3.8954500000000003,
+    "dma64k": 8.4474,
+    "malloc_free": 1.03145,
+    "stream_cd": 0.70295,
+    "event_cd": 0.1546,
+    "managed_fault": 65.9974,
+    "kcycles": 2113597022.0,
+    "kinstr": 1253875183.0
+   }
+  },
+  {
+   "label": "B",
+   "secs": 2.2,
+   "med": {
+    "submit_sync": 3.58805,
+    "event_sync": 3.78625,
+    "dma4k": 3.7926,
+    "dma64k": 8.4122,
+    "malloc_free": 1.03625,
+    "stream_cd": 0.7074,
+    "event_cd": 0.1547,
+    "managed_fault": 66.4411,
+    "kcycles": 2130415666.0,
+    "kinstr": 1259639988.0
+   }
+  },
+  {
+   "label": "A",
+   "secs": 2.2,
+   "med": {
+    "submit_sync": 3.56575,
+    "event_sync": 3.79555,
+    "dma4k": 3.77865,
+    "dma64k": 8.42315,
+    "malloc_free": 1.0299,
+    "stream_cd": 0.7032,
+    "event_cd": 0.1544,
+    "managed_fault": 66.3266,
+    "kcycles": 2124790516.0,
+    "kinstr": 1236196757.0
+   }
+  },
+  {
+   "label": "B",
+   "secs": 2.2,
+   "med": {
+    "submit_sync": 3.5806,
+    "event_sync": 3.7847999999999997,
+    "dma4k": 3.86755,
+    "dma64k": 8.4439,
+    "malloc_free": 1.0210499999999998,
+    "stream_cd": 0.6987,
+    "event_cd": 0.1553,
+    "managed_fault": 65.13595000000001,
+    "kcycles": 2093006089.0,
+    "kinstr": 1170871112.0
+   }
+  },
+  {
+   "label": "A",
+   "secs": 2.2,
+   "med": {
+    "submit_sync": 3.6029999999999998,
+    "event_sync": 3.8522,
+    "dma4k": 3.8865,
+    "dma64k": 8.42715,
+    "malloc_free": 1.0355,
+    "stream_cd": 0.70665,
+    "event_cd": 0.1544,
+    "managed_fault": 66.1554,
+    "kcycles": 2118367327.0,
+    "kinstr": 1227774195.0
+   }
+  },
+  {
+   "label": "A",
+   "secs": 2.2,
+   "med": {
+    "submit_sync": 3.5918,
+    "event_sync": 3.79875,
+    "dma4k": 3.7691999999999997,
+    "dma64k": 8.39605,
+    "malloc_free": 1.0362,
+    "stream_cd": 0.7127,
+    "event_cd": 0.158,
+    "managed_fault": 65.80595,
+    "kcycles": 2109681706.0,
+    "kinstr": 1221487084.0
+   }
+  },
+  {
+   "label": "B",
+   "secs": 2.2,
+   "med": {
+    "submit_sync": 3.6364,
+    "event_sync": 3.8125999999999998,
+    "dma4k": 3.8081,
+    "dma64k": 8.42355,
+    "malloc_free": 1.02925,
+    "stream_cd": 0.7046,
+    "event_cd": 0.1541,
+    "managed_fault": 66.0531,
+    "kcycles": 2113370426.0,
+    "kinstr": 1254435741.0
+   }
+  },
+  {
+   "label": "A",
+   "secs": 2.2,
+   "med": {
+    "submit_sync": 3.6008,
+    "event_sync": 3.82745,
+    "dma4k": 3.90135,
+    "dma64k": 8.4325,
+    "malloc_free": 1.0256,
+    "stream_cd": 0.6994,
+    "event_cd": 0.1551,
+    "managed_fault": 65.97550000000001,
+    "kcycles": 2130047415.0,
+    "kinstr": 1249646566.0
+   }
+  },
+  {
+   "label": "B",
+   "secs": 2.2,
+   "med": {
+    "submit_sync": 3.6457,
+    "event_sync": 3.77205,
+    "dma4k": 3.9009,
+    "dma64k": 8.4168,
+    "malloc_free": 1.0301,
+    "stream_cd": 0.70415,
+    "event_cd": 0.1541,
+    "managed_fault": 66.36505,
+    "kcycles": 2122230821.0,
+    "kinstr": 1243432491.0
+   }
+  },
+  {
+   "label": "B",
+   "secs": 2.2,
+   "med": {
+    "submit_sync": 3.5822,
+    "event_sync": 3.8307,
+    "dma4k": 3.86705,
+    "dma64k": 8.42075,
+    "malloc_free": 1.04825,
+    "stream_cd": 0.7165,
+    "event_cd": 0.1551,
+    "managed_fault": 66.44749999999999,
+    "kcycles": 2148120780.0,
+    "kinstr": 1257238087.0
+   }
+  },
+  {
+   "label": "A",
+   "secs": 2.2,
+   "med": {
+    "submit_sync": 3.568,
+    "event_sync": 3.8425,
+    "dma4k": 3.78845,
+    "dma64k": 8.4199,
+    "malloc_free": 1.01565,
+    "stream_cd": 0.7071,
+    "event_cd": 0.1541,
+    "managed_fault": 65.61105,
+    "kcycles": 2105855896.0,
+    "kinstr": 1212234003.0
+   }
+  },
+  {
+   "label": "B",
+   "secs": 2.2,
+   "med": {
+    "submit_sync": 3.6074,
+    "event_sync": 3.7954499999999998,
+    "dma4k": 3.7937000000000003,
+    "dma64k": 8.41415,
+    "malloc_free": 1.0319500000000001,
+    "stream_cd": 0.70665,
+    "event_cd": 0.1563,
+    "managed_fault": 66.26634999999999,
+    "kcycles": 2119497837.0,
+    "kinstr": 1233955370.0
+   }
+  },
+  {
+   "label": "A",
+   "secs": 2.2,
+   "med": {
+    "submit_sync": 3.58125,
+    "event_sync": 3.8153,
+    "dma4k": 3.8261,
+    "dma64k": 8.4246,
+    "malloc_free": 1.0629,
+    "stream_cd": 0.70705,
+    "event_cd": 0.1563,
+    "managed_fault": 67.26140000000001,
+    "kcycles": 2147109415.0,
+    "kinstr": 1291794961.0
+   }
+  },
+  {
+   "label": "A",
+   "secs": 2.2,
+   "med": {
+    "submit_sync": 3.5746,
+    "event_sync": 3.8673,
+    "dma4k": 3.8735,
+    "dma64k": 8.4192,
+    "malloc_free": 1.0176500000000002,
+    "stream_cd": 0.7056,
+    "event_cd": 0.1564,
+    "managed_fault": 66.5785,
+    "kcycles": 2132039757.0,
+    "kinstr": 1273542936.0
+   }
+  },
+  {
+   "label": "B",
+   "secs": 2.2,
+   "med": {
+    "submit_sync": 3.59685,
+    "event_sync": 3.79335,
+    "dma4k": 3.8712,
+    "dma64k": 8.40795,
+    "malloc_free": 1.0281500000000001,
+    "stream_cd": 0.70075,
+    "event_cd": 0.1549,
+    "managed_fault": 66.3355,
+    "kcycles": 2126741536.0,
+    "kinstr": 1260664313.0
+   }
+  }
+ ]
+}

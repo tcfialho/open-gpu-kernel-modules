@@ -1,0 +1,249 @@
+{
+ "name": "aa2_load3",
+ "dir": "/home/tcfialho/build-optimizations/nvidia-open/bench/../mods/asis",
+ "module_reloads": 1,
+ "bench_secs": 48.9,
+ "xid_new": 0,
+ "runs": [
+  {
+   "submit_spin": {
+    "wall": 6.85055,
+    "kcyc": 11.0
+   },
+   "fence_block": {
+    "wall": 25.78305,
+    "kcyc": 3002.7
+   },
+   "alloc2m": {
+    "wall": 82.44409999999999,
+    "kcyc": 182130.5
+   },
+   "h2d64k": {
+    "wall": 10.38095,
+    "kcyc": 15.350000000000001
+   },
+   "hostreg1m": {
+    "wall": 110.2475,
+    "kcyc": 246086.15000000002
+   },
+   "uvm_prefetch2m": {
+    "wall": 672.189,
+    "kcyc": 90222.9
+   },
+   "nvenc1080p": {
+    "wall": 1609.16995,
+    "kcyc": 9178.05
+   }
+  },
+  {
+   "submit_spin": {
+    "wall": 6.8396,
+    "kcyc": 11.3
+   },
+   "fence_block": {
+    "wall": 25.694,
+    "kcyc": 2983.3
+   },
+   "alloc2m": {
+    "wall": 82.3825,
+    "kcyc": 182111.75
+   },
+   "h2d64k": {
+    "wall": 10.4365,
+    "kcyc": 14.9
+   },
+   "hostreg1m": {
+    "wall": 110.43185,
+    "kcyc": 247018.6
+   },
+   "uvm_prefetch2m": {
+    "wall": 673.2827,
+    "kcyc": 90077.1
+   },
+   "nvenc1080p": {
+    "wall": 1608.8038999999999,
+    "kcyc": 9231.65
+   }
+  },
+  {
+   "submit_spin": {
+    "wall": 6.86395,
+    "kcyc": 11.2
+   },
+   "fence_block": {
+    "wall": 25.758899999999997,
+    "kcyc": 2995.65
+   },
+   "alloc2m": {
+    "wall": 82.44669999999999,
+    "kcyc": 182403.0
+   },
+   "h2d64k": {
+    "wall": 10.43945,
+    "kcyc": 14.55
+   },
+   "hostreg1m": {
+    "wall": 110.61224999999999,
+    "kcyc": 246772.2
+   },
+   "uvm_prefetch2m": {
+    "wall": 669.8965499999999,
+    "kcyc": 90277.1
+   },
+   "nvenc1080p": {
+    "wall": 1608.9478,
+    "kcyc": 9117.650000000001
+   }
+  },
+  {
+   "submit_spin": {
+    "wall": 6.818,
+    "kcyc": 10.850000000000001
+   },
+   "fence_block": {
+    "wall": 25.71065,
+    "kcyc": 2966.75
+   },
+   "alloc2m": {
+    "wall": 82.4419,
+    "kcyc": 182307.1
+   },
+   "h2d64k": {
+    "wall": 10.4036,
+    "kcyc": 14.6
+   },
+   "hostreg1m": {
+    "wall": 110.7815,
+    "kcyc": 247078.0
+   },
+   "uvm_prefetch2m": {
+    "wall": 674.2405,
+    "kcyc": 90063.3
+   },
+   "nvenc1080p": {
+    "wall": 1608.54035,
+    "kcyc": 9149.85
+   }
+  },
+  {
+   "submit_spin": {
+    "wall": 6.85655,
+    "kcyc": 13.4
+   },
+   "fence_block": {
+    "wall": 25.7524,
+    "kcyc": 2984.35
+   },
+   "alloc2m": {
+    "wall": 82.38659999999999,
+    "kcyc": 182168.05
+   },
+   "h2d64k": {
+    "wall": 10.42475,
+    "kcyc": 14.2
+   },
+   "hostreg1m": {
+    "wall": 110.45605,
+    "kcyc": 246407.15
+   },
+   "uvm_prefetch2m": {
+    "wall": 671.46605,
+    "kcyc": 90350.65
+   },
+   "nvenc1080p": {
+    "wall": 1609.41055,
+    "kcyc": 9303.65
+   }
+  },
+  {
+   "submit_spin": {
+    "wall": 6.8259,
+    "kcyc": 10.95
+   },
+   "fence_block": {
+    "wall": 25.7119,
+    "kcyc": 2962.1
+   },
+   "alloc2m": {
+    "wall": 82.33085,
+    "kcyc": 182334.25
+   },
+   "h2d64k": {
+    "wall": 10.41385,
+    "kcyc": 15.9
+   },
+   "hostreg1m": {
+    "wall": 110.4281,
+    "kcyc": 246804.3
+   },
+   "uvm_prefetch2m": {
+    "wall": 672.5686499999999,
+    "kcyc": 90118.0
+   },
+   "nvenc1080p": {
+    "wall": 1608.4803000000002,
+    "kcyc": 9154.85
+   }
+  },
+  {
+   "submit_spin": {
+    "wall": 6.8102,
+    "kcyc": 12.45
+   },
+   "fence_block": {
+    "wall": 25.7304,
+    "kcyc": 2962.5
+   },
+   "alloc2m": {
+    "wall": 82.45405,
+    "kcyc": 182435.25
+   },
+   "h2d64k": {
+    "wall": 10.3978,
+    "kcyc": 15.05
+   },
+   "hostreg1m": {
+    "wall": 110.38785,
+    "kcyc": 246369.4
+   },
+   "uvm_prefetch2m": {
+    "wall": 671.90675,
+    "kcyc": 89805.6
+   },
+   "nvenc1080p": {
+    "wall": 1608.4843999999998,
+    "kcyc": 9181.55
+   }
+  },
+  {
+   "submit_spin": {
+    "wall": 6.87125,
+    "kcyc": 11.7
+   },
+   "fence_block": {
+    "wall": 25.838099999999997,
+    "kcyc": 2983.5
+   },
+   "alloc2m": {
+    "wall": 82.50354999999999,
+    "kcyc": 182414.90000000002
+   },
+   "h2d64k": {
+    "wall": 10.43385,
+    "kcyc": 15.4
+   },
+   "hostreg1m": {
+    "wall": 110.8329,
+    "kcyc": 247176.45
+   },
+   "uvm_prefetch2m": {
+    "wall": 671.40295,
+    "kcyc": 90564.7
+   },
+   "nvenc1080p": {
+    "wall": 1609.2171,
+    "kcyc": 9193.4
+   }
+  }
+ ]
+}

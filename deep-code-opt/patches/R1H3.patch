@@ -1,0 +1,23 @@
+diff --git a/src/nvidia/src/kernel/gpu/gsp/kernel_gsp.c b/src/nvidia/src/kernel/gpu/gsp/kernel_gsp.c
+index 46d5b50..5492e4f 100644
+--- a/src/nvidia/src/kernel/gpu/gsp/kernel_gsp.c
++++ b/src/nvidia/src/kernel/gpu/gsp/kernel_gsp.c
+@@ -3302,6 +3302,7 @@ kgspRecvPoll_IMPL
+     NvU32      timeoutFlags;
+     NvBool     bSlowGspRpc = !IS_SILICON(pGpu);
+     NvU32      gpuMaskUnused;
++    NvU32      timeoutPollCount = 0;
+ 
+ #if defined(GSPRM_HWASAN_ENABLE)
+     //
+@@ -3383,7 +3384,9 @@ kgspRecvPoll_IMPL
+         // Check for GPU timeout, save that information, and then verify if the RPC is completed.
+         // Otherwise if the CPU thread goes to sleep immediately after the RPC check, it may result in hitting a timeout.
+         //
+-        timeoutStatus = gpuCheckTimeout(pGpu, &timeout);
++        // gpuCheckTimeout() reads the clock (ktime_get_raw_ts64) every call; the timeout is in the 100s of ms, so sample every 8th iteration.
++        if ((timeoutPollCount++ & 0x7) == 0)
++            timeoutStatus = gpuCheckTimeout(pGpu, &timeout);
+ 
+         rpcStatus = _kgspRpcDrainEvents(pGpu, pKernelGsp, expectedFunc, expectedSequence, rpcHandlerContext,
+                                         pConditionFunc, pConditionData);

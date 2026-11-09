@@ -1,0 +1,58 @@
+{
+ "submit_spin": {
+  "metric": "wall",
+  "mad_within_pct": 0.526,
+  "mad_between_loads_pct": 0.041,
+  "spread_loads_pct": 0.083,
+  "wall_mad_within_pct": 0.526
+ },
+ "h2d64k": {
+  "metric": "wall",
+  "mad_within_pct": 0.098,
+  "mad_between_loads_pct": 0.045,
+  "spread_loads_pct": 0.089,
+  "wall_mad_within_pct": 0.098
+ },
+ "fence_block": {
+  "metric": "wall",
+  "mad_within_pct": 0.151,
+  "mad_between_loads_pct": 0.048,
+  "spread_loads_pct": 0.096,
+  "wall_mad_within_pct": 0.151
+ },
+ "alloc2m": {
+  "metric": "kcyc",
+  "mad_within_pct": 0.101,
+  "mad_between_loads_pct": 0.049,
+  "spread_loads_pct": 0.098,
+  "wall_mad_within_pct": 0.052
+ },
+ "hostreg1m": {
+  "metric": "kcyc",
+  "mad_within_pct": 0.267,
+  "mad_between_loads_pct": 0.065,
+  "spread_loads_pct": 0.13,
+  "wall_mad_within_pct": 0.261
+ },
+ "uvm_prefetch2m": {
+  "metric": "kcyc",
+  "mad_within_pct": 0.359,
+  "mad_between_loads_pct": 0.057,
+  "spread_loads_pct": 0.114,
+  "wall_mad_within_pct": 0.187
+ },
+ "nvenc1080p": {
+  "metric": "wall",
+  "mad_within_pct": 0.016,
+  "mad_between_loads_pct": 0.009,
+  "spread_loads_pct": 0.019,
+  "wall_mad_within_pct": 0.016
+ },
+ "ctx_create": {
+  "metric": "wall",
+  "mad_within_pct": 0.378,
+  "mad_between_loads_pct": 0.064,
+  "spread_loads_pct": 0.128,
+  "wall_mad_within_pct": 0.378
+ }
+}

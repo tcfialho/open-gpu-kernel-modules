@@ -1,0 +1,7 @@
+from _lib import patch
+patch("src/nvidia/src/kernel/gpu/intr/arch/turing/intr_nonstall_tu102.c", [
+("/*!\n * @brief get a bitvector of engines with pending nonstall interrupts\n",
+ "// True if some engine in the table has a non-stall vector in leaf 'leafIdx' (otherwise the leaf never matters)\nstatic NvBool\n_intrLeafHasNonStallVector\n(\n    InterruptTable *pIntrTable,\n    NvU32           leafIdx\n)\n{\n    InterruptTableIter iter;\n\n    for (iter = vectIterAll(pIntrTable); vectIterNext(&iter);)\n    {\n        NvU32 vec = ((INTR_TABLE_ENTRY *)iter.pValue)->intrVectorNonStall;\n        if ((vec != NV_INTR_VECTOR_INVALID) &&\n            (vec >= NV_CTRL_INTR_LEAF_IDX_TO_GPU_VECTOR_START(leafIdx)) &&\n            (vec <= NV_CTRL_INTR_LEAF_IDX_TO_GPU_VECTOR_END(leafIdx)))\n            return NV_TRUE;\n    }\n    return NV_FALSE;\n}\n\n/*!\n * @brief get a bitvector of engines with pending nonstall interrupts\n"),
+("        for (j = NV_CTRL_INTR_SUBTREE_TO_LEAF_IDX_START(i); j <= NV_CTRL_INTR_SUBTREE_TO_LEAF_IDX_END(i); j++)\n        {\n            InterruptTableIter iter;\n            // LEAF==0 makes the AND zero regardless of EN_SET: skip the second MMIO read\n",
+ "        for (j = NV_CTRL_INTR_SUBTREE_TO_LEAF_IDX_START(i); j <= NV_CTRL_INTR_SUBTREE_TO_LEAF_IDX_END(i); j++)\n        {\n            InterruptTableIter iter;\n            if (!_intrLeafHasNonStallVector(pIntrTable, j))\n                continue;\n            // LEAF==0 makes the AND zero regardless of EN_SET: skip the second MMIO read\n"),
+])
