@@ -58,6 +58,9 @@ CFLAGS += -I src/libraries
 CFLAGS += -I inc/kernel
 
 # Libspdm source requires additional include paths and build flags.
+# gmcapi_impl.c fora do LTO: com -march=native o ThinLTO gera R_X86_64_REX_GOTPCRELX p/ os handlers weak e o kernel recusa o modulo ("Unknown rela relocation: 42")
+$(call BUILD_OBJECT_LIST,src/kernel/core/gmcapi_impl.c): CFLAGS += -fno-lto
+
 include src/libraries/libspdm/nvidia/openspdm.mk
 $(call BUILD_OBJECT_LIST,$(LIBSPDM_SOURCES)): CFLAGS += $(addprefix -I ,$(LIBSPDM_INCLUDES))
 $(call BUILD_OBJECT_LIST,$(LIBSPDM_SOURCES)): CFLAGS += $(addprefix -D,$(LIBSPDM_DEFINES))

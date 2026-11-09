@@ -1,1 +1,1 @@
--O3 -pipe -mtune=native -flto=thin -fno-semantic-interposition -falign-functions=32 -falign-loops=32 -fomit-frame-pointer -fno-math-errno -fno-trapping-math
+-O3 -pipe -mtune=native -flto=thin -fno-semantic-interposition -falign-functions=32 -falign-loops=32 -fomit-frame-pointer -fno-math-errno -fno-trapping-math -march=native -mno-avx -mno-avx2 -mno-avx512f -mno-sse4a -mno-mmx -mno-sse -mno-sse2
