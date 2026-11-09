@@ -2479,6 +2479,10 @@ nvidia_poll(
     if ((file->f_flags & O_NONBLOCK) == 0)
         poll_wait(file, &nvlfp->waitqueue, wait);
 
+    // Nothing pending: skip the irqsave lock round trip (a later event wakes the waitqueue registered above)
+    if ((READ_ONCE(nvlfp->event_data_head) == NULL) && !READ_ONCE(nvlfp->dataless_event_pending))
+        return 0;
+
     NV_SPIN_LOCK_IRQSAVE(&nvlfp->fp_lock, eflags);
 
     if ((nvlfp->event_data_head != NULL) || nvlfp->dataless_event_pending)
