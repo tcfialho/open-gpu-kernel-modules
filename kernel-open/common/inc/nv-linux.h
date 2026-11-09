@@ -1562,9 +1562,7 @@ static inline void nv_wait_open_complete(nv_linux_file_private_t *nvlfp)
 
 static inline NvBool nv_is_open_complete(nv_linux_file_private_t *nvlfp)
 {
-    // completion_done() takes the completion's irqsave lock on every poll(); a plain acquire load of 'done' is enough
-    // to learn that open finished (complete_all() makes it non-zero and it never goes back).
-    return smp_load_acquire(&nvlfp->open_complete.done) != 0;
+    return completion_done(&nvlfp->open_complete);
 }
 
 #define NV_SET_FILE_PRIVATE(filep,data) ((filep)->private_data = (data))

@@ -6295,12 +6295,7 @@ NV_STATUS gpuGetCeFaultMethodBufferSize_KERNEL(OBJGPU *pGpu, NvU32 *size)
     NV_STATUS status = NV_OK;
 
     if (sz == 0)
-    {
         status = kceGetFaultMethodBufferSize(pGpu, &sz);
-        // Constant per GPU: cache it (the field was read but never written, so every channel group paid a GSP RPC)
-        if (status == NV_OK)
-            pGpu->ceFaultMethodBufferSize = sz;
-    }
 
     if (status == NV_OK)
         *size = sz;
